@@ -16,7 +16,7 @@ private:
 	size_t layer_size = 0;
 	double *inputs = nullptr;
 	size_t input_size = 0;
-	double **weights = nullptr;  // x -layer_size ; y - input_size
+	double **weights = nullptr;  // x - layer_size ; y - input_size
 	bool bias = true;
 	Layer *left = nullptr;
 public:
