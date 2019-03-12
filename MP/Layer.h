@@ -1,6 +1,8 @@
 #pragma once
 #include "Neuron.h"
 
+#define MINIMAL_LAYER_SIZE 3
+
 enum class Layer_Type
 {
 	Input,
@@ -10,31 +12,29 @@ enum class Layer_Type
 
 class Layer
 {
-private:
-	Layer_Type type;
-	Neuron *layer = nullptr;
-	size_t layer_size = 0;
-	double *inputs = nullptr;
+protected:
+	Layer_Type l_type = Layer_Type::Hidden;
+	size_t l_size = 0;
+	double **weights = nullptr;
 	size_t input_size = 0;
-	double **weights = nullptr;  // x - layer_size ; y - input_size
+	double *input = nullptr;
+	Neuron *layer = nullptr;
 	bool bias = true;
-	Layer *left = nullptr;
 public:
 	Layer() = delete;
-	Layer & operator=(Layer &l) = delete;
-	Layer(Layer &val) = delete;
-
+	Layer(Layer &l);
 	Layer(const Layer_Type type, 
-		  const Activation_Func_Type neuron_act, 
-		  const size_t layer_size, 
-		  const bool enable_biases = true);
-	void Set_Left(Layer &l);
-	void Activate();
-	void Set_Weights(const double **w, const size_t index, const size_t priv_layer_count);
-	double *Get_Neuron_Weights(const size_t index);
-	size_t Get_Neurons_Count() { return layer_size; }
-	double operator[] (size_t index);
-
+		const Activation_Func_Type n_type, 
+		const size_t l_size, 
+		const size_t inp_size);
 	~Layer();
+	Layer &operator= (const Layer &l) = delete;
+	Neuron &operator[] (const size_t index);
+	void SetWeights(const double **w,const size_t l,const size_t i);
+	void SetNeuronType(const size_t index, const Activation_Func_Type n_type);
+	double ** GetWeights();
+	void GetResult(double *ret, size_t &i);
+	void Calculate();
+	void UseBias(const bool use);
 };
 

@@ -1,112 +1,146 @@
 #include "Layer.h"
-#include <assert.h>
+#include <exception>
 #include <string.h>
+#include <random>
+#include <time.h>
+#include "math_func.h"
 
-
-Layer::Layer(const Layer_Type type, const Activation_Func_Type neuron_act, const size_t layer_size, const bool enable_biases)
+Layer::Layer(Layer & l)
 {
-	assert(layer_size > 0);
-	this->type = type;
-	this->layer_size = layer_size;
-	this->bias = enable_biases;
-	layer = new Neuron[layer_size]();
-	for (size_t i = 0; i < layer_size; ++i)
-		layer[i] = Neuron(neuron_act);
-}
-
-void Layer::Set_Left(Layer & l)
-{
-	assert(l.Get_Neurons_Count() > 0);
-	if (weights != nullptr && l.Get_Neurons_Count() != input_size)
-		assert(false);
-	input_size = l.Get_Neurons_Count();
-	left = &l;
-	if (inputs != nullptr)
-		delete[] inputs;
-	inputs = new double[input_size];
-}
-
-void Layer::Activate()
-{
-	assert(weights != nullptr);
-	assert(inputs != nullptr);
-	assert(left != nullptr);
-
-	for (size_t i = 0; i < input_size; ++i)
-	{
-		inputs[i] = left->layer[i].Get_Result();
-	}
-	double tmp = 0;
-	for (size_t i = 0; i < layer_size; ++i)
-	{
-		tmp = 0;
-		for (size_t j = 0; j < input_size; ++j)
-		{
-			tmp += inputs[j] * weights[i][j];
-		}
-		layer[i].Activate(tmp);
-	}
-
-}
-
-void Layer::Set_Weights(const double ** w, const size_t layer_size, const size_t input_size)
-{
-	assert(w != nullptr);
-	assert(layer_size == this->layer_size);
-	assert(input_size > 0);
-	
+	l_type = l.l_type;
+	l_size = l_size;
+	input_size = l.input_size;
+	bias = l.bias;
 	if (weights != nullptr)
 	{
-		if (input_size != this->input_size)
+		for (size_t i = 0; i < l_size; ++i)
 		{
-			for (size_t i = 0; i < layer_size; ++i)
-				delete[] weights[i];
-			delete[] weights;
-
-			this->input_size = input_size;
-			weights = new double*[layer_size];
-			for (size_t i = 0; i < layer_size; ++i)
-			{
-				weights[i] = new double[input_size];
-			}
-		}
-	} 
-	else
-	{
-		this->input_size = input_size;
-		weights = new double*[layer_size];
-		for (size_t i = 0; i < layer_size; ++i)
-		{
-			weights[i] = new double[input_size];
-		}
-	}
-
-	memcpy_s(weights, sizeof(double) * this->layer_size * this->input_size, w, sizeof(double) * layer_size * input_size);
-}
-
-double * Layer::Get_Neuron_Weights(const size_t index)
-{
-	assert(index < layer_size);
-	return weights[index];
-}
-
-double Layer::operator[](size_t index)
-{
-	assert(index < layer_size);
-	return layer[index].Get_Result();
-}
-
-
-Layer::~Layer()
-{
-	if (weights != nullptr)
-	{
-		for (size_t i = 0; i < layer_size; ++i)
 			delete[] weights[i];
+		}
 		delete[] weights;
 	}
 	if (layer != nullptr)
 		delete[] layer;
-	if (inputs != nullptr)
-		delete[] inputs;
+	layer = new Neuron[l_size];
+	weights = new double *[l_size];
+	for (size_t i = 0; i < l_size; ++i)
+	{
+		layer[i] = l[i];
+		weights[i] = new double[input_size];
+	}
+
+	SetWeights(l.GetWeights(), l_size, input_size);
+}
+
+Layer::Layer(const Layer_Type type, const Activation_Func_Type n_type, const size_t l_size, const size_t inp_size)
+{
+	l_type = type;
+	this->l_size = l_size;
+	input_size = inp_size;
+	if (n_type == Activation_Func_Type::Bias)
+		throw std::exception("Layer: wrong Neurons type.");
+	if (l_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: too small layer size.");
+	if (input_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: wrong layer type or input size.");
+	std::srand(time(nullptr));
+
+	layer = new Neuron[l_size]; // last neuron is bias
+	weights = new double *[l_size];
+	input = new double[input_size];
+	memset(input, 0, input_size);
+
+	for (size_t i = 0; i < l_size; ++i)
+	{
+		layer[i] = Neuron(n_type);
+		weights[i] = new double[input_size];
+		for (size_t j = 0; j < input_size; ++j)
+		{
+			weights[i][j] = double(std::rand()) / (double(RAND_MAX) + 1.0);
+		}
+	}
+}
+
+Neuron & Layer::operator[](const size_t index)
+{
+	if (layer == nullptr)
+		throw std::exception("Layer: layer is empty.");
+	if (index >= l_size)
+		throw std::exception("Layer: index too big.");
+	return layer[index];
+}
+
+void Layer::SetWeights(const double ** w, const size_t l, const size_t i)
+{
+	if (i != input_size || l != l_size)
+		throw std::exception("Layer: different sizes.");
+
+	memcpy(weights, w, l_size * input_size * sizeof(double));
+}
+
+void Layer::SetNeuronType(const size_t index, const Activation_Func_Type n_type)
+{
+	if (index >= l_size)
+		throw std::exception("Layer: index too big.");
+
+	layer[index].SetType(n_type);
+}
+
+void Layer::SetInput(const double *data, const size_t len)
+{
+	if (len != input_size)
+		throw std::exception("Layer: wrong input size.");
+	if (input_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: wrong layer type or input size.");
+
+	memcpy(input, data, input_size * sizeof(double));
+}
+
+double ** Layer::GetWeights()
+{
+	return weights;
+}
+
+void Layer::GetResult(double *ret, size_t &i)
+{
+	if (i != l_size)
+		throw std::exception("Layer: wrong input size");
+
+	for (size_t j = 0; j < l_size; ++j)
+	{
+		ret[j] = layer[j].GetResult();
+	}
+}
+
+void Layer::Calculate()
+{
+	if (l_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: layer size is less then 2.");
+	if (input_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: input size too small.");
+	if (weights == nullptr || layer == nullptr || input == nullptr)
+		throw std::exception("Layer: empty array.");
+
+	for (size_t i = 0; i < l_size; ++i)
+	{
+		layer[i].Activate(weighted_sum(input, weights[i], input_size));
+	}
+}
+
+void Layer::UseBias(const bool use)
+{
+	if (l_size < MINIMAL_LAYER_SIZE)
+		throw std::exception("Layer: layer size is less then 2.");
+	bias = use;
+	layer[l_size - 1].SetType(use ? Activation_Func_Type::Bias : layer[l_size - 2].GetType() );
+}
+
+Layer::~Layer()
+{
+	delete[] layer;
+	for (size_t i = 0; i < l_size; ++i)
+	{
+		delete[] weights[i];
+	}
+	delete[] weights;
 }

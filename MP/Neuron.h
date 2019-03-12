@@ -20,9 +20,12 @@ private:
 public:
 	Neuron() {}
 	Neuron(const Activation_Func_Type act);
-	double Get_Result() { return result; }
+	double GetResult() { return result; }
 	void Activate(const double x);
-	double Get_Derivative();
+	void SetType(const Activation_Func_Type t) { type = t; }
+	void SetAlpha(const double a) { this->a = a; }
+	Activation_Func_Type GetType() { return type; }
+	double GetDerivative();
 	~Neuron();
 };
 

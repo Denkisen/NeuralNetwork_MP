@@ -27,7 +27,7 @@ void Neuron::Activate(const double x)
 	}
 }
 
-double Neuron::Get_Derivative()
+double Neuron::GetDerivative()
 {
 	switch (type)
 	{
