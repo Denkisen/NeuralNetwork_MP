@@ -5,46 +5,46 @@
 
 Neuron::Neuron(const Activation_Func_Type act)
 {
-	type = act;
+  type = act;
 }
 
 void Neuron::Activate(const double x)
 {
-	switch (type)
-	{
-	case Activation_Func_Type::ReLU:
-		result = ReLu(x);
-	case Activation_Func_Type::LeakyReLu:
-		result = Leaky_ReLu(x, a);
-	case Activation_Func_Type::Tanh:
-		result = Tanh(x, a);
-	case Activation_Func_Type::Bias:
-		result = x;
-		break;
-	default:
-		assert(false);
-		break;
-	}
+  switch (type)
+  {
+  case Activation_Func_Type::ReLU:
+    result = ReLu(x);
+  case Activation_Func_Type::LeakyReLu:
+    result = Leaky_ReLu(x, a);
+  case Activation_Func_Type::Tanh:
+    result = Tanh(x, a);
+  case Activation_Func_Type::Bias:
+    result = x;
+    break;
+  default:
+    assert(false);
+    break;
+  }
 }
 
 double Neuron::GetDerivative()
 {
-	switch (type)
-	{
-		case Activation_Func_Type::ReLU:
-			return Derivative_ReLu(result);
-		case Activation_Func_Type::LeakyReLu:
-			return Derivative_Leaky_ReLu(result);
-		case Activation_Func_Type::Tanh:
-			return Derivative_Tanh(result, a);
-		case Activation_Func_Type::Bias:
-			assert(false);
-			break;
-		default:
-			assert(false);
-			break;
-	}
-	return 0.0;
+  switch (type)
+  {
+    case Activation_Func_Type::ReLU:
+      return Derivative_ReLu(result);
+    case Activation_Func_Type::LeakyReLu:
+      return Derivative_Leaky_ReLu(result);
+    case Activation_Func_Type::Tanh:
+      return Derivative_Tanh(result, a);
+    case Activation_Func_Type::Bias:
+      assert(false);
+      break;
+    default:
+      assert(false);
+      break;
+  }
+  return 0.0;
 }
 
 

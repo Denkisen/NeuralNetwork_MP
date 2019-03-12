@@ -2,8 +2,8 @@
 
 int main(void *arg[])
 {
-	printf("Start");
+  printf("Start");
 
-	getchar();
-	return 0;
+  getchar();
+  return 0;
 }

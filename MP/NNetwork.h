@@ -2,7 +2,7 @@
 class NNetwork
 {
 public:
-	NNetwork();
-	~NNetwork();
+  NNetwork();
+  ~NNetwork();
 };
 
